@@ -1,0 +1,13 @@
+@charset "UTF-8";
+@animationDuration: 0.5s;
+@animations: '../../node_modules/vue2-animate/src/animations';
+
+// Main mixin
+@import "../../node_modules/vue2-animate/src/make-transitions";
+
+// Our animations
+@import "@{animations}/bouncing/all";
+@import "@{animations}/fading/all";
+@import "@{animations}/rotating/all";
+@import "@{animations}/sliding/all";
+@import "@{animations}/zooming/all";

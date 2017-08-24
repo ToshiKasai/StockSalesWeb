@@ -59,6 +59,9 @@ const actions = {
       params: { 'Year': params.year }
     })
   },
+  setSalesview({ commit }, params) {
+    return Vue.http.post('api/salesviews/', params)
+  },
   getStocksCurrent({ commit, products }, id) {
     return Vue.http.get('api/salesviews/' + id + '/current')
   },
@@ -66,6 +69,16 @@ const actions = {
     return Vue.http.get('api/salesviews/' + params.id + '/trends', {
       params: { 'Year': params.year }
     })
+  },
+  setSalesTrends({ commit, products }, params) {
+    if (params.id === 0) {
+      return Vue.http.post('api/salesviews/' + params.product_id + '/trends', params)
+    } else {
+      return Vue.http.put('api/salesviews/' + params.product_id + '/trends/' + params.id, params)
+    }
+  },
+  delSalesTrends({ commit, products }, params) {
+    return Vue.http.delete('api/salesviews/' + params.product_id + '/trends/' + params.id)
   }
 }
 

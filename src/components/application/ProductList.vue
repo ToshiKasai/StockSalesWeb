@@ -11,7 +11,7 @@
     el-card.box-card(v-for="data in selectViews" :id="'article-' + data.product.code" :key="data.product.code")
       div {{data.product.code}} : {{data.product.name}}
       .subtitle ({{data.product.isSoldWeight?'計量品':'ピース品'}}／ケース：{{data.product.quantity}}／パレット：{{data.product.paletteQuantity | placeholder('未登録')}}／リードタイム：{{data.product.leadTime | placeholder('未登録')}})
-      el-button 保存
+      el-button(@click="doSave(data)") 保存
       el-button(@click="goDetail(data.product)") 詳細表示
       product-table(:showData.sync="data")
     div#floadBtnMenu(@click="showMenu")
@@ -95,7 +95,7 @@ export default {
     getScreenData() {
       this.$store.dispatch('nowLoading', 'データ取得中')
       this.optYear = []
-      for (var i = 2016; i < this.getNowYear() + 2; i++) {
+      for (var i = 2016; i < this.getNowYear() + 3; i++) {
         this.optYear.push({ value: i, label: i.toString() + '年度' })
       }
       if (this.year === null) {
@@ -138,6 +138,16 @@ export default {
     },
     goDetail(product) {
       this.$router.push({ name: 'salesdetail', params: { id: product.id } })
+    },
+    doSave(data) {
+      // this.$store.dispatch('nowLoading', 'データ登録中')
+      this.$store.dispatch('setSalesview', data).then((value) => {
+        // this.$store.dispatch('endLoading')
+        this.$notify.info({ title: data.product.name, message: '保存完了しました。' })
+      }, (reasone) => {
+        // this.$store.dispatch('endLoading')
+        this.$notify.error({ title: 'Error', message: reasone.message })
+      })
     }
   },
   created() {

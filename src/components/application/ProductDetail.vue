@@ -30,11 +30,32 @@
             el-table-column(prop="customsClearanceDate" label="通関日" :formatter="showNumber" width="130")
             el-table-column(prop="warehouseCode" label="倉庫" width="100")
     el-card.box-card-noscroll
+      el-button(@click="newTrend") 販売動向を登録
       el-table(:data="salesTrends" height="300" stripe border fit v-loading="trendLoadFlg" element-loading-text="処理中")
-        el-table-column(prop="detail_date" label="年月" width="130")
+        el-table-column(label="機能" fixed="left" width="200")
+          template(scope="scope")
+            el-button(size="small" @click="editTrend(scope.row)") 編集
+            el-button(size="small" @click="deleteTrend(scope.row)") 削除
+        el-table-column(prop="detail_date" label="年月" width="100")
+          template(scope="scope")
+            span {{scope.row.detail_date | converetDateFormat('YYYY/MM')}}
         el-table-column(prop="quantity" label="数量" align="right" header-align="left" width="180")
         el-table-column(prop="comments" label="コメント")
+          template(scope="scope")
+            span {{scope.row.comments | truncate(60)}}
         el-table-column(prop="user_name" label="入力/変更者" width="200")
+    // SalesTrendの編集用ダイアログ
+    el-dialog(title="販売動向" :visible.sync="dialogVisible")
+      el-form(:model="form")
+        el-form-item(label="日付" label-width="120")
+          el-date-picker(v-model="form.targetdate" type="month" placeholder="対象年月" format="yyyy年MM月")
+        el-form-item(label="コメント" label-width="120")
+          el-input(placeholder="コメント" v-model="form.comments")
+        el-form-item(label="数量" label-width="120")
+          el-input-number(v-model="form.quantity")
+      span.dialog-footer(slot="footer")
+        el-button(@click="dialogVisible = false") Cancel
+        el-button(type="primary" @click="registTrend") Confirm
 </template>
 <script>
 import Enumerable from 'linq'
@@ -42,7 +63,6 @@ import moment from 'moment'
 import ProductTable from './subcomponents/ProductTable.vue'
 import ProductChart from './subcomponents/ProductChart.js'
 import { makeArray, makeSingle } from '@/libraries/supports'
-
 function currency(value, currency, decimals) {
   var digitsRE = /(\d{3})(?=\d)/g
   value = parseFloat(value)
@@ -78,7 +98,6 @@ export default {
       title: '商品データ詳細',
       selectView: null,
       singleData: null,
-      invoiceFlag: false,
       datacollection: null,
       chartOptions: {
         title: { display: true, text: '情報チャート by M.Takayama' },
@@ -135,7 +154,9 @@ export default {
       currentInvoice: null,
       invoiceMaxDate: null,
       salesTrends: null,
-      trendLoadFlg: false
+      trendLoadFlg: false,
+      form: { id: null, targetdate: null, comments: null, quantity: null },
+      dialogVisible: false
     }
   },
   computed: {
@@ -262,6 +283,13 @@ export default {
         this.$notify.error({ title: 'Error', message: reasone.message })
       })
     },
+    getTrendData() {
+      this.trendLoadFlg = true
+      this.$store.dispatch('getSalesTrends', { id: this.id, year: this.year }).then((value) => {
+        this.salesTrends = makeArray(value.data, 'object')
+        this.trendLoadFlg = false
+      })
+    },
     percentage(param1, param2) {
       if (param2 === 0) {
         return 0
@@ -343,8 +371,47 @@ export default {
         }
       }
     },
-    toggleInvoice() {
-      this.invoiceFlag = this.invoiceFlag === false
+    editTrend(trend) {
+      this.form.id = trend.id
+      this.form.targetdate = trend.detail_date
+      this.form.comments = trend.comments
+      this.form.quantity = trend.quantity
+      this.dialogVisible = true
+    },
+    deleteTrend(trend) {
+      this.trendLoadFlg = true
+      this.$store.dispatch('delSalesTrends', trend).then((value) => {
+        this.$notify.info({ title: '販売動向情報', message: '削除しました。' })
+        this.getTrendData()
+      }, (reasone) => {
+        this.$notify.error({ title: 'Error', message: reasone.message })
+        this.trendLoadFlg = false
+      })
+    },
+    newTrend() {
+      this.form.id = 0
+      this.form.targetdate = moment().toISOString()
+      this.form.comments = null
+      this.form.quantity = 0
+      this.dialogVisible = true
+    },
+    registTrend() {
+      this.trendLoadFlg = true
+      this.dialogVisible = false
+      let data = {}
+      data.id = this.form.id
+      data.product_id = this.selectView[0].product.id
+      data.detail_date = moment(this.form.targetdate).format('YYYY/MM/DD')
+      data.comments = this.form.comments
+      data.quantity = this.form.quantity
+      data.user_id = this.$store.getters.userId
+      this.$store.dispatch('setSalesTrends', data).then((value) => {
+        this.$notify.info({ title: '販売動向情報', message: '登録/更新しました。' })
+        this.getTrendData()
+      }, (reasone) => {
+        this.$notify.error({ title: 'Error', message: reasone.message })
+        this.trendLoadFlg = false
+      })
     }
   },
   created() {

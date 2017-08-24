@@ -45,6 +45,14 @@ Vue.filter('converetDateFormat', function (value, format) {
     return tmp.format(form)
   } catch (e) { return '' }
 })
+Vue.filter('converetDateTimeFormat', function (value, format) {
+  try {
+    var tmp = moment(value)
+    var form = 'YYYY/MM/DD HH:mm:ss'
+    if (format !== null && format !== undefined) { form = format }
+    return tmp.format(form)
+  } catch (e) { return '' }
+})
 Vue.filter('deletedMessage', function (value) {
   if (value) {
     return '削除'

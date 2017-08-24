@@ -27,7 +27,8 @@ const routes = [
       { path: 'groups', component: require('./../components/maintenance/GroupList.vue'), meta: { requiresProduct: true } },
       { path: 'groups/:id/edit', component: require('./../components/maintenance/GroupEdit.vue'), name: 'groupedit', props: true, meta: { requiresUser: true } },
       { path: 'groups/add', component: require('./../components/maintenance/GroupAdd.vue'), name: 'groupadd', meta: { requiresUser: true } },
-      { path: 'groups/:id/products', component: require('./../components/maintenance/GroupProducts.vue'), name: 'groupproduct', props: true, meta: { requiresUser: true } }
+      { path: 'groups/:id/products', component: require('./../components/maintenance/GroupProducts.vue'), name: 'groupproduct', props: true, meta: { requiresUser: true } },
+      { path: 'dashboards', component: require('./../components/maintenance/Dashboard.vue'), name: 'dashboard', meta: { requiresAdmin: true } }
     ],
     meta: { requiresAuth: true }
   },

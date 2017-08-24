@@ -87,6 +87,11 @@ const actions = {
   },
   getContainers() {
     return Vue.http.get('api/containers')
+  },
+  getDashboards({ commit, state }) {
+    return Vue.http.get('api/dashboards', {
+      params: { 'Deleted': true, 'Enabled': false }
+    })
   }
 }
 

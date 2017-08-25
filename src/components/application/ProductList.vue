@@ -8,11 +8,8 @@
       el-form-item(label="年度")
         el-select(v-model="tmpYear" @change="changeYear")
           el-option(v-for="item in optYear" :key="item.value" :label="item.label" :value="item.value")
+    el-button(@click="downloadData" :loading="downloadFlag" v-bind="{'disabled' : downloadFlag}") 現在のデータをダウンロード
     el-card.box-card(v-for="data in selectViews" :id="'article-' + data.product.code" :key="data.product.code")
-      div {{data.product.code}} : {{data.product.name}}
-      .subtitle ({{data.product.isSoldWeight?'計量品':'ピース品'}}／ケース：{{data.product.quantity}}／パレット：{{data.product.paletteQuantity | placeholder('未登録')}}／リードタイム：{{data.product.leadTime | placeholder('未登録')}})
-      el-button(@click="doSave(data)") 保存
-      el-button(@click="goDetail(data.product)") 詳細表示
       product-table(:showData.sync="data")
     div#floadBtnMenu(@click="showMenu")
       i.material-icons &#xE5D2;
@@ -45,7 +42,8 @@ export default {
       scrollPosition: 0,
       scrollEventFlag: false,
       tmpYear: this.year,
-      optYear: []
+      optYear: [],
+      downloadFlag: false
     }
   },
   computed: {
@@ -136,18 +134,41 @@ export default {
       var element = document.getElementById(dat)
       this.$SmoothScroll(element, 800)
     },
-    goDetail(product) {
-      this.$router.push({ name: 'salesdetail', params: { id: product.id } })
-    },
-    doSave(data) {
-      // this.$store.dispatch('nowLoading', 'データ登録中')
-      this.$store.dispatch('setSalesview', data).then((value) => {
-        // this.$store.dispatch('endLoading')
-        this.$notify.info({ title: data.product.name, message: '保存完了しました。' })
+    downloadData() {
+      this.downloadFlag = true
+      var data = {
+        url: 'api/salesviews/download',
+        params: {
+          'Year': this.year,
+          'GroupId': this.selectGroup.id,
+          'MakerId': this.selectMaker.id
+        },
+        responseType: 'blob'
+      }
+      this.$http.request(data).then((values) => {
+        var fileName = 'Download' + this.year.toString()
+        fileName = fileName + '_' + moment().format('YYYYMMDD_HHmmSSS').toString() + '.xlsx'
+        this.downloadAsFile(fileName, values.data)
+        this.downloadFlag = false
       }, (reasone) => {
-        // this.$store.dispatch('endLoading')
         this.$notify.error({ title: 'Error', message: reasone.message })
+        this.downloadFlag = false
       })
+    },
+    downloadAsFile(fileName, content) {
+      if (window.navigator.msSaveBlob) {
+        window.navigator.msSaveBlob(content, fileName)
+      } else {
+        var a = document.createElement('a')
+        // document.body.appendChild(a)
+        a.href = window.URL.createObjectURL(content)
+        // a.download = fileName
+        a.setAttribute('download', fileName || 'noname')
+        a.click()
+        // a.dispatchEvent(new CustomEvent('click'))
+        // document.body.removeChild(a)
+        // window.URL.revokeObjectURL(a.href)
+      }
     }
   },
   created() {

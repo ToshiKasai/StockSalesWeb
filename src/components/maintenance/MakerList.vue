@@ -1,7 +1,7 @@
 <template lang="pug">
   div
     el-table(:data="makers" height="480")
-      el-table-column(prop="code" label="コード" sortable width="150")
+      el-table-column(prop="code" label="コード" :sortable="true" width="150")
       el-table-column(prop="name" label="名称")
       el-table-column(prop="enabled" label="使用許可" :filters="enabledFilters" :filter-method="filterEnabled" filter-placement="bottom-end" :filter-multiple="false" width="120")
         template(scope="scope")

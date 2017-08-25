@@ -1,10 +1,10 @@
 <template lang="pug">
   div
     el-table(:data="dashboards" stripe height="480")
-      el-table-column(prop="startDateTime" label="掲載開始" sortable width="180")
+      el-table-column(prop="startDateTime" label="掲載開始" :sortable="true" width="180")
         template(scope="scope")
           span {{scope.row.startDateTime | converetDateTimeFormat}}
-      el-table-column(prop="endDateTime" label="掲載終了" sortable width="180")
+      el-table-column(prop="endDateTime" label="掲載終了" :sortable="true" width="180")
         template(scope="scope")
           span {{scope.row.endDateTime | converetDateTimeFormat}}
       el-table-column(prop="priority" label="優先度" min-width="50")
@@ -14,10 +14,10 @@
       el-table-column(prop="deleted" label="削除" :filters="disabledFilters" :filter-method="filterDisabled" filter-placement="bottom-end" :filter-multiple="false" width="100")
         template(scope="scope")
           span {{scope.row.deleted | deletedMessage}}
-      el-table-column(prop="createdDateTime" label="登録日時" sortable width="180")
+      el-table-column(prop="createdDateTime" label="登録日時" :sortable="true" width="180")
         template(scope="scope")
           span {{scope.row.createdDateTime | converetDateTimeFormat}}
-      el-table-column(prop="modifiedDateTime" label="最終変更日時" sortable width="180")
+      el-table-column(prop="modifiedDateTime" label="最終変更日時" :sortable="true" width="180")
         template(scope="scope")
           span {{scope.row.modifiedDateTime | converetDateTimeFormat}}
       el-table-column(label="機能" fixed="left" width="150")

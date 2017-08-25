@@ -41,7 +41,9 @@ const routes = [
 ]
 
 const router = new Router({
-  scrollBehavior: (to, from, savedPosition) => ({ x: 0, y: 0 }),
+  scrollBehavior(to, from, savedPosition) {
+    return { x: 0, y: 0 }
+  },
   routes: routes
 })
 

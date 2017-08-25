@@ -2,9 +2,9 @@
   div
     el-button(@click="useradd") 新規登録
     el-table(:data="users" stripe height="480")
-      el-table-column(prop="userName" label="コード" sortable width="150")
+      el-table-column(prop="userName" label="コード" :sortable="true" width="150")
       el-table-column(prop="name" label="ユーザー名" min-width="200")
-      el-table-column(prop="expiration" label="有効期限" sortable width="150")
+      el-table-column(prop="expiration" label="有効期限" :sortable="true" width="150")
         template(scope="scope")
           span {{scope.row.expiration | converetDateFormat}}
       el-table-column(prop="email" label="メールアドレス" min-width="300")

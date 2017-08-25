@@ -3,32 +3,29 @@
     el-card.box-card-noscroll
       product-chart(:chart-data="datacollection" :options="chartOptions" :height="chartHeight")
     el-card.box-card(v-for="data in selectView" :key="data.product.code")
-      div {{data.product.code}} : {{data.product.name}}
-      .subtitle ({{data.product.isSoldWeight?'計量品':'ピース品'}}／ケース：{{data.product.quantity}}／パレット：{{data.product.paletteQuantity | placeholder('未登録')}}／リードタイム：{{data.product.leadTime | placeholder('未登録')}})
-      el-button 保存
-      product-table(:showData.sync="data" :refZaikoPlan="returnZaikoPlan" :results="recalc")
+      product-table(:showData.sync="data" :refZaikoPlan="returnZaikoPlan" :results="recalc" :detailMode="true")
     el-card.box-card-noscroll
       el-table(:data="currentStock" height="300" stripe show-summary :summary-method="getSummaries" border)
-        el-table-column(prop="warehouseCode" label="倉庫" sortable width="100")
+        el-table-column(prop="warehouseCode" label="倉庫" :sortable="true" width="100")
         el-table-column(prop="warehouseName" label="倉庫名")
         el-table-column(prop="logicalQuantity" label="販売在庫" align="right" header-align="left" :formatter="showNumber" width="180")
         el-table-column(prop="actualQuantity" label="倉庫在庫" align="right" header-align="left" :formatter="showNumber" width="180")
-        el-table-column(prop="expirationDate" label="賞味期限" :formatter="showNumber" sortable width="130")
-        el-table-column(prop="stateName" label="打検"  width="100")
+        el-table-column(prop="expirationDate" label="賞味期限" :formatter="showNumber" :sortable="true" width="130")
+        el-table-column(prop="stateName" label="打検"  width="100" :sortable="true")
       el-row
         el-col(:span="8")
           el-table(:data="currentOrder" height="200" stripe border)
             el-table-column(prop="orderNo" label="発注Ｎｏ")
-            el-table-column(prop="orderDate" label="発注日" :formatter="showNumber" width="130")
+            el-table-column(prop="orderDate" label="発注日" :formatter="showNumber" width="130" :sortable="true")
             el-table-column(prop="order" label="発注数" align="right" header-align="left" :formatter="showNumber" width="150")
         el-col(:span="16")
           el-table(:data="currentInvoice" height="200" stripe border)
             el-table-column(prop="invoiceNo" label="インボイスＮｏ")
-            el-table-column(prop="purchaseDate" label="仕入日付" :formatter="showNumber" width="130")
+            el-table-column(prop="purchaseDate" label="仕入日付" :formatter="showNumber" width="130" :sortable="true")
             el-table-column(prop="quantity" label="仕入数量" align="right" header-align="left" :formatter="showNumber" width="150")
             el-table-column(prop="eta" label="入港日" :formatter="showNumber" width="130")
             el-table-column(prop="customsClearanceDate" label="通関日" :formatter="showNumber" width="130")
-            el-table-column(prop="warehouseCode" label="倉庫" width="100")
+            el-table-column(prop="warehouseCode" label="倉庫" width="100" :sortable="true")
     el-card.box-card-noscroll
       el-button(@click="newTrend") 販売動向を登録
       el-table(:data="salesTrends" height="300" stripe border fit v-loading="trendLoadFlg" element-loading-text="処理中")
@@ -36,14 +33,14 @@
           template(scope="scope")
             el-button(size="small" @click="editTrend(scope.row)") 編集
             el-button(size="small" @click="deleteTrend(scope.row)") 削除
-        el-table-column(prop="detail_date" label="年月" width="100")
+        el-table-column(prop="detail_date" label="年月" width="100" :sortable="true")
           template(scope="scope")
             span {{scope.row.detail_date | converetDateFormat('YYYY/MM')}}
         el-table-column(prop="quantity" label="数量" align="right" header-align="left" width="180")
         el-table-column(prop="comments" label="コメント")
           template(scope="scope")
             span {{scope.row.comments | truncate(60)}}
-        el-table-column(prop="user_name" label="入力/変更者" width="200")
+        el-table-column(prop="user_name" label="入力/変更者" width="200" :sortable="true")
     // SalesTrendの編集用ダイアログ
     el-dialog(title="販売動向" :visible.sync="dialogVisible")
       el-form(:model="form")

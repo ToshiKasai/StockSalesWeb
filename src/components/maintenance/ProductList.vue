@@ -1,12 +1,12 @@
 <template lang="pug">
   div
     data-tables(:data="products" :border="false"
-      :search-def="searchDefine"
+      :search-def="searchDefine" :action-col-def="actionColDef"
       :pagination-def="pageDefine" :has-action-col='false'
       :checkbox-filter-def="filterDefine")
-      el-table-column(prop="code" label="コード" sortable width="110")
+      el-table-column(prop="code" label="コード" :sortable="true" width="110")
       el-table-column(prop="name" label="名称")
-      el-table-column(prop="makerCode" label="メーカー" sortable)
+      el-table-column(prop="makerCode" label="メーカー" :sortable="true")
         template(scope="scope")
           span {{scope.row.makerCode}} - {{scope.row.makerName}}
       el-table-column(prop="quantity" label="入り数" width="90" align="right")
@@ -42,12 +42,37 @@ export default {
           { name: '計量', code: 'sol.true' }, { name: 'ピース', code: 'sol.false' }],
         filterFunction: this.myFilters
       },
+      actionColDef: {
+        label: '操作',
+        def: [{
+          // type: 'info',
+          icon: 'edit',
+          name: '許可変更',
+          handler: row => {
+            // this.$notify.info({ title: 'お知らせ', message: row.name + 'の変更依頼を行いました' })
+            row.enabled = row.enabled === false
+            this.$store.dispatch('maintenance/setProduct', row).then((values) => {
+              this.$notify.success({ title: '変更', message: row.name + 'の使用許可の変更完了' })
+            }, (error) => {
+              this.$notify.error({ title: 'Error', message: error.message })
+            })
+          }
+        },
+        {
+          // type: 'info',
+          icon: 'edit',
+          name: 'EDIT',
+          handler: row => {
+            this.$notify.info({ title: 'DEBUG', message: row.name })
+          }
+        }]
+      },
       products: []
     }
   },
   methods: {
     myFilters(row, props) {
-      var list = makeArray(props.val, 'string')
+      var list = makeArray(props.vals, 'string')
       var filter = [null, null, null]
       var ret = [true, true, true]
       for (var i = 0; i < list.length; i++) {

@@ -2,9 +2,9 @@
   div
     el-button(@click="groupadd") 新規登録
     el-table(:data="groups" stripe height="480")
-      el-table-column(prop="code" label="コード" sortable width="150")
+      el-table-column(prop="code" label="コード" :sortable="true" width="150")
       el-table-column(prop="name" label="グループ名" min-width="200")
-      el-table-column(prop="makerCode" label="メーカー" sortable min-width="200")
+      el-table-column(prop="makerCode" label="メーカー" :sortable="true" min-width="200")
         template(scope="scope") {{scope.row.makerCode}} : {{scope.row.makerName}}
       el-table-column(prop="deleted" label="削除" :filters="disabledFilters" :filter-method="filterDisabled" filter-placement="bottom-end" :filter-multiple="false" width="100")
         template(scope="scope")

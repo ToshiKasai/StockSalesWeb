@@ -1,78 +1,83 @@
 <template lang="pug">
-  table.ptable(border="0")
-    tr
-      th(colspan="2") -
-      el-tooltip.item(v-for="o in 12" :key="o" effect="dark" :content="dataFormat(data.salesList[o].detail_date)" placement="top")
-        th.datacell {{ (o + 8) % 12 + 1 }}月
+  div
+    div {{data.product.code}} : {{data.product.name}}
+    .subtitle ({{data.product.isSoldWeight?'計量品':'ピース品'}}／ケース：{{data.product.quantity}}／パレット：{{data.product.paletteQuantity | placeholder('未登録')}}／リードタイム：{{data.product.leadTime | placeholder('未登録')}})
+    el-button(@click="doSave(data)" v-bind="{disabled : saveFlag}" :loading="saveFlag") 保存
+    el-button(v-if="!detailMode" @click="goDetail(data.product)") 詳細表示
+    table.ptable(border="0")
+      tr
+        th(colspan="2") -
+        el-tooltip.item(v-for="o in 12" :key="o" effect="dark" :content="dataFormat(data.salesList[o].detail_date)" placement="top")
+          th.datacell {{ (o + 8) % 12 + 1 }}月
 
-    tr
-      th.title-st(rowspan="2") 月初<br>在庫
-      el-tooltip.item(effect="dark" content="在庫数と入荷や販売情報より算出" placement="top")
-        th.title-mid 予測
-      td.datacell(v-for="o in 12" :key="o" :class="{'text-danger':zaikoPlan[o]<0}") {{zaikoPlan[o] | currency('',data.product.isSoldWeight?3:0)}}
-    tr
-      el-tooltip.item(effect="dark" content="月初時の在庫" placement="top")
+      tr
+        th.title-st(rowspan="2") 月初<br>在庫
+        el-tooltip.item(effect="dark" content="在庫数と入荷や販売情報より算出" placement="top")
+          th.title-mid 予測
+        td.datacell(v-for="o in 12" :key="o" :class="{'text-danger':zaikoPlan[o]<0}") {{zaikoPlan[o] | currency('',data.product.isSoldWeight?3:0)}}
+      tr
+        el-tooltip.item(effect="dark" content="月初時の在庫" placement="top")
+          th.title-mid 実績
+        td(v-for="o in 12" :key="o") {{data.salesList[o].zaiko_actual | currency('',data.product.isSoldWeight?3:0)}}
+
+      tr
+        th.title-st(rowspan="2") 発注
+        th.title-mid 予定
+          i.el-icon-edit
+        td(v-for="o in 12" :key="o")
+          edit-number(:editval.sync="data.salesList[o].order_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
+      tr
         th.title-mid 実績
-      td(v-for="o in 12" :key="o") {{data.salesList[o].zaiko_actual | currency('',data.product.isSoldWeight?3:0)}}
+        td(v-for="o in 12" :key="o") {{data.salesList[o].order_actual | currency('',data.product.isSoldWeight?3:0)}}
 
-    tr
-      th.title-st(rowspan="2") 発注
-      th.title-mid 予定
-        i.el-icon-edit
-      td(v-for="o in 12" :key="o")
-        edit-number(:editval.sync="data.salesList[o].order_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
-    tr
-      th.title-mid 実績
-      td(v-for="o in 12" :key="o") {{data.salesList[o].order_actual | currency('',data.product.isSoldWeight?3:0)}}
+      tr
+        th.title-st(:rowspan="invoiceFlag?5:3") 入荷
+        th.title-mid 予定
+          i.el-icon-edit
+        td(v-for="o in 12" :key="o")
+          edit-number(:editval.sync="data.salesList[o].invoice_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
+      tr
+        th.title-mid 実績
+        td(v-for="o in 12" :key="o") {{data.salesList[o].invoice_actual | currency('',data.product.isSoldWeight?3:0)}}
+      tr
+        th.title-mid(@click="toggleInvoice") 残数
+          i.el-icon-arrow-down(:class="{'el-icon-arrow-up':invoiceFlag}")
+        td(v-for="o in 12" :key="o") {{data.salesList[o].invoice_zan - data.salesList[o].invoice_adjust | currency('',data.product.isSoldWeight?3:0)}}
+      tr.hidden-title(v-show="invoiceFlag")
+        th.title-mid 残数
+        td(v-for="o in 12" :key="o") {{data.salesList[o].invoice_zan | currency('',data.product.isSoldWeight?3:0)}}
+      tr.hidden-title(v-show="invoiceFlag")
+        th.title-mid 調整
+          i.el-icon-edit
+        td(v-for="o in 12" :key="o" :class="{'text-danger':data.salesList[o].invoice_adjust<0}")
+          edit-number(:editval.sync="data.salesList[o].invoice_adjust" :dispdlag="data.product.isSoldWeight" :results="recalc")
+      tr
+        th.title-st(:rowspan="salesRow") 販売
+        th.title-mid 前年
+        td(v-for="o in 12" :key="o") {{data.salesList[o].pre_sales_actual | currency('',data.product.isSoldWeight?3:0)}}
+      tr
+        th.title-mid 予算
+          i.el-icon-edit
+        td(v-for="o in 12" :key="o")
+          edit-number(:editval.sync="data.salesList[o].sales_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
+      tr
+        th.title-mid 動向
+        td(v-for="o in 12" :key="o") {{data.salesList[o].sales_trend | currency('',data.product.isSoldWeight?3:0)}}
+      tr
+        th.title-mid(@click="toggleSales") 実績
+          i.el-icon-arrow-down(:class="{'el-icon-arrow-up':officesFlag}")
+        td(v-for="o in 12" :key="o") {{data.salesList[o].sales_actual | currency('',data.product.isSoldWeight?3:0)}}
 
-    tr
-      th.title-st(:rowspan="invoiceFlag?5:3") 入荷
-      th.title-mid 予定
-        i.el-icon-edit
-      td(v-for="o in 12" :key="o")
-        edit-number(:editval.sync="data.salesList[o].invoice_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
-    tr
-      th.title-mid 実績
-      td(v-for="o in 12" :key="o") {{data.salesList[o].invoice_actual | currency('',data.product.isSoldWeight?3:0)}}
-    tr
-      th.title-mid(@click="toggleInvoice") 残数
-        i.el-icon-arrow-down(:class="{'el-icon-arrow-up':invoiceFlag}")
-      td(v-for="o in 12" :key="o") {{data.salesList[o].invoice_zan - data.salesList[o].invoice_adjust | currency('',data.product.isSoldWeight?3:0)}}
-    tr.hidden-title(v-show="invoiceFlag")
-      th.title-mid 残数
-      td(v-for="o in 12" :key="o") {{data.salesList[o].invoice_zan | currency('',data.product.isSoldWeight?3:0)}}
-    tr.hidden-title(v-show="invoiceFlag")
-      th.title-mid 調整
-        i.el-icon-edit
-      td(v-for="o in 12" :key="o" :class="{'text-danger':data.salesList[o].invoice_adjust<0}")
-        edit-number(:editval.sync="data.salesList[o].invoice_adjust" :dispdlag="data.product.isSoldWeight" :results="recalc")
-    tr
-      th.title-st(:rowspan="salesRow") 販売
-      th.title-mid 前年
-      td(v-for="o in 12" :key="o") {{data.salesList[o].pre_sales_actual | currency('',data.product.isSoldWeight?3:0)}}
-    tr
-      th.title-mid 予算
-        i.el-icon-edit
-      td(v-for="o in 12" :key="o")
-        edit-number(:editval.sync="data.salesList[o].sales_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
-    tr
-      th.title-mid 動向
-      td(v-for="o in 12" :key="o") {{data.salesList[o].sales_trend | currency('',data.product.isSoldWeight?3:0)}}
-    tr
-      th.title-mid(@click="toggleSales") 実績
-        i.el-icon-arrow-down(:class="{'el-icon-arrow-up':officesFlag}")
-      td(v-for="o in 12" :key="o") {{data.salesList[o].sales_actual | currency('',data.product.isSoldWeight?3:0)}}
+      tr.hidden-title(v-for="office in data.officeSales" v-show="officesFlag")
+        th.title-mid {{office[1].office_name}}
+        td(v-for="o in 12" :key="o") {{office[o].sales_actual | currency('',data.product.isSoldWeight?3:0)}}
 
-    tr.hidden-title(v-for="office in data.officeSales" v-show="officesFlag")
-      th.title-mid {{office[1].office_name}}
-      td(v-for="o in 12" :key="o") {{office[o].sales_actual | currency('',data.product.isSoldWeight?3:0)}}
-
-    tr
-      th.title-mid 前年比
-      td(v-for="o in 12" :key="o") {{percentage(data.salesList[o].sales_actual,data.salesList[o].pre_sales_actual) | currency('',1)}}
-    tr
-      th.title-mid 予実比
-      td(v-for="o in 12" :key="o") {{percentage(data.salesList[o].sales_actual,data.salesList[o].sales_plan+data.salesList[o].sales_trend) | currency('',1)}}
+      tr
+        th.title-mid 前年比
+        td(v-for="o in 12" :key="o") {{percentage(data.salesList[o].sales_actual,data.salesList[o].pre_sales_actual) | currency('',1)}}
+      tr
+        th.title-mid 予実比
+        td(v-for="o in 12" :key="o") {{percentage(data.salesList[o].sales_actual,data.salesList[o].sales_plan+data.salesList[o].sales_trend) | currency('',1)}}
 </template>
 <script>
 import moment from 'moment'
@@ -82,6 +87,10 @@ export default {
     showData: {
       type: Object,
       required: true
+    },
+    detailMode: {
+      type: Boolean,
+      default: false
     },
     results: {
       type: Function,
@@ -99,7 +108,8 @@ export default {
       invoiceFlag: false,
       officesFlag: false,
       salesRow: 6,
-      zaikoPlan: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      zaikoPlan: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      saveFlag: false
     }
   },
   mounted() {
@@ -165,6 +175,23 @@ export default {
     toggleSales() {
       this.officesFlag = this.officesFlag === false
       this.salesRow = this.officesFlag ? this.data.officeSales.length + 6 : 6
+    },
+    goDetail(product) {
+      this.$SmoothScroll(0, 1000)
+      this.$router.push({ name: 'salesdetail', params: { id: product.id } })
+    },
+    doSave(data) {
+      this.saveFlag = true
+      // this.$store.dispatch('nowLoading', 'データ登録中')
+      this.$store.dispatch('setSalesview', data).then((value) => {
+        // this.$store.dispatch('endLoading')
+        this.$notify.info({ title: data.product.name, message: '保存完了しました。' })
+        this.saveFlag = false
+      }, (reasone) => {
+        // this.$store.dispatch('endLoading')
+        this.$notify.error({ title: 'Error', message: reasone.message })
+        this.saveFlag = false
+      })
     }
   }
 }

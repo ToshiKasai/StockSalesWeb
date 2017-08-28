@@ -4,6 +4,9 @@
     .subtitle ({{data.product.isSoldWeight?'計量品':'ピース品'}}／ケース：{{data.product.quantity}}／パレット：{{data.product.paletteQuantity | placeholder('未登録')}}／リードタイム：{{data.product.leadTime | placeholder('未登録')}})
     el-button(@click="doSave(data)" v-bind="{disabled : saveFlag}" :loading="saveFlag") 保存
     el-button(v-if="!detailMode" @click="goDetail(data.product)") 詳細表示
+    span.button_margin(v-if="nosaveFlag")
+      i.save_warning.material-icons &#xE002;
+      |未保存の状態です
     table.ptable(border="0")
       tr
         th(colspan="2") -
@@ -23,9 +26,9 @@
       tr
         th.title-st(rowspan="2") 発注
         th.title-mid 予定
-          i.el-icon-edit
+          i.table_icon.el-icon-edit
         td(v-for="o in 12" :key="o")
-          edit-number(:editval.sync="data.salesList[o].order_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
+          edit-number(:editval.sync="data.salesList[o].order_plan" :dispflag="data.product.isSoldWeight" :index="o" :results="recalcOrder")
       tr
         th.title-mid 実績
         td(v-for="o in 12" :key="o") {{data.salesList[o].order_actual | currency('',data.product.isSoldWeight?3:0)}}
@@ -33,39 +36,39 @@
       tr
         th.title-st(:rowspan="invoiceFlag?5:3") 入荷
         th.title-mid 予定
-          i.el-icon-edit
+          i.table_icon.el-icon-edit
         td(v-for="o in 12" :key="o")
-          edit-number(:editval.sync="data.salesList[o].invoice_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
+          edit-number(:editval.sync="data.salesList[o].invoice_plan" :dispflag="data.product.isSoldWeight" :results="recalc")
       tr
         th.title-mid 実績
         td(v-for="o in 12" :key="o") {{data.salesList[o].invoice_actual | currency('',data.product.isSoldWeight?3:0)}}
       tr
         th.title-mid(@click="toggleInvoice") 残数
-          i.el-icon-arrow-down(:class="{'el-icon-arrow-up':invoiceFlag}")
+          i.table_icon.el-icon-arrow-down(:class="{'el-icon-arrow-up':invoiceFlag}")
         td(v-for="o in 12" :key="o") {{data.salesList[o].invoice_zan - data.salesList[o].invoice_adjust | currency('',data.product.isSoldWeight?3:0)}}
       tr.hidden-title(v-show="invoiceFlag")
         th.title-mid 残数
         td(v-for="o in 12" :key="o") {{data.salesList[o].invoice_zan | currency('',data.product.isSoldWeight?3:0)}}
       tr.hidden-title(v-show="invoiceFlag")
         th.title-mid 調整
-          i.el-icon-edit
+          i.table_icon.el-icon-edit
         td(v-for="o in 12" :key="o" :class="{'text-danger':data.salesList[o].invoice_adjust<0}")
-          edit-number(:editval.sync="data.salesList[o].invoice_adjust" :dispdlag="data.product.isSoldWeight" :results="recalc")
+          edit-number(:editval.sync="data.salesList[o].invoice_adjust" :dispflag="data.product.isSoldWeight" :results="recalc")
       tr
         th.title-st(:rowspan="salesRow") 販売
         th.title-mid 前年
         td(v-for="o in 12" :key="o") {{data.salesList[o].pre_sales_actual | currency('',data.product.isSoldWeight?3:0)}}
       tr
         th.title-mid 予算
-          i.el-icon-edit
+          i.table_icon.el-icon-edit
         td(v-for="o in 12" :key="o")
-          edit-number(:editval.sync="data.salesList[o].sales_plan" :dispdlag="data.product.isSoldWeight" :results="recalc")
+          edit-number(:editval.sync="data.salesList[o].sales_plan" :dispflag="data.product.isSoldWeight" :results="recalc")
       tr
         th.title-mid 動向
         td(v-for="o in 12" :key="o") {{data.salesList[o].sales_trend | currency('',data.product.isSoldWeight?3:0)}}
       tr
         th.title-mid(@click="toggleSales") 実績
-          i.el-icon-arrow-down(:class="{'el-icon-arrow-up':officesFlag}")
+          i.table_icon.el-icon-arrow-down(:class="{'el-icon-arrow-up':officesFlag}")
         td(v-for="o in 12" :key="o") {{data.salesList[o].sales_actual | currency('',data.product.isSoldWeight?3:0)}}
 
       tr.hidden-title(v-for="office in data.officeSales" v-show="officesFlag")
@@ -109,7 +112,8 @@ export default {
       officesFlag: false,
       salesRow: 6,
       zaikoPlan: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      saveFlag: false
+      saveFlag: false,
+      nosaveFlag: false
     }
   },
   mounted() {
@@ -129,7 +133,16 @@ export default {
         return param1 / param2 * 100
       }
     },
+    recalcOrder(index, val) {
+      if (this.data.product.leadTime !== null) {
+        if (index + this.data.product.leadTime <= 12) {
+          this.data.salesList[index + this.data.product.leadTime].invoice_plan = val
+        }
+      }
+      this.recalc(val)
+    },
     recalc(val) {
+      this.nosaveFlag = true
       this.calcInvoiceZan()
       this.calcZaikoPlan()
       if (this.results !== null) {
@@ -187,6 +200,7 @@ export default {
         // this.$store.dispatch('endLoading')
         this.$notify.info({ title: data.product.name, message: '保存完了しました。' })
         this.saveFlag = false
+        this.nosaveFlag = false
       }, (reasone) => {
         // this.$store.dispatch('endLoading')
         this.$notify.error({ title: 'Error', message: reasone.message })
@@ -272,8 +286,17 @@ table.ptable td {
 }
 
 i {
-  margin-left: 8px;
-  font-size: 10px;
   color: $icon-color;
+  &.save_warning {
+    font-size: 16px;
+  }
+  &.table_icon {
+    margin-left: 8px;
+    font-size: 10px;
+  }
+}
+
+.button_margin{
+  margin-left: 10px;
 }
 </style>

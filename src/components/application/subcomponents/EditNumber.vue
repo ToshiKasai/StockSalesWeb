@@ -1,22 +1,27 @@
 <template lang="pug">
   div(@click="onToggle")
-    span(v-show="!editFlag") {{editval | currency('',dispdlag?3:0)}}
+    span(v-show="!editFlag") {{editval | currency('',dispflag?3:0)}}
     input.inputter(name="editinput" v-show="editFlag" v-model="showVal"
       type="text" @keypress="keycheck" @focus="onEdit" @blur="offToggle" @change="formatcheck" editinput)
 </template>
 <script>
+import { myIsNaN } from '@/libraries/supports'
 export default {
   props: {
     editval: {
       type: Number,
       required: true
     },
-    dispdlag: {
+    dispflag: {
       type: Boolean,
       default: false
     },
     results: {
       type: Function,
+      default: null
+    },
+    index: {
+      type: Number,
       default: null
     }
   },
@@ -42,12 +47,21 @@ export default {
       this.onEditFlag = true
     },
     offToggle(e) {
+      if (myIsNaN(this.showVal)) {
+        this.showVal = 0
+      }
+      if (this.onEditFlag && this.showVal !== this.editval) {
+        if (this.results !== null) {
+          if (this.index === null) {
+            this.results(this.showVal)
+          } else {
+            this.results(this.index, this.showVal)
+          }
+        }
+        this.$emit('update:editval', this.showVal)
+      }
       this.editFlag = false
       this.onEditFlag = false
-      if (this.results !== null) {
-        this.results(this.showVal)
-      }
-      this.$emit('update:editval', this.showVal)
     },
     formatcheck(val) {
       if (this.showVal === null) {

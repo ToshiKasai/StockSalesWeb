@@ -11,7 +11,8 @@
       tr
         th(colspan="2") -
         el-tooltip.item(v-for="o in 12" :key="o" effect="dark" :content="dataFormat(data.salesList[o].detail_date)" placement="top")
-          th.datacell {{ (o + 8) % 12 + 1 }}月
+          // th.datacell {{ (o + 8) % 12 + 1 }}月
+          th.detacell {{data.salesList[o].detail_date | converetDateFormat("M月")}}
 
       tr
         th.title-st(rowspan="2") 月初<br>在庫
@@ -123,7 +124,7 @@ export default {
   methods: {
     dataFormat(value) {
       var tmp = moment(value)
-      var form = 'YYYY年MM月'
+      var form = 'YYYY年M月'
       return tmp.format(form)
     },
     percentage(param1, param2) {

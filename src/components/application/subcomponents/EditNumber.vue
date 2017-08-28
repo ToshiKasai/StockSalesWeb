@@ -1,11 +1,11 @@
 <template lang="pug">
-  div(@click="onToggle")
-    span(v-show="!editFlag") {{editval | currency('',dispflag?3:0)}}
-    input.inputter(name="editinput" v-show="editFlag" v-model="showVal"
+  div.myedit(@click="onToggle")
+    input.showdisp(v-if="!editFlag" v-model="dispval" disabled)
+    input.inputter(name="editinput" v-if="editFlag" v-model="showVal"
       type="text" @keypress="keycheck" @focus="onEdit" @blur="offToggle" @change="formatcheck" editinput)
 </template>
 <script>
-import { myIsNaN } from '@/libraries/supports'
+import { myIsNaN, numberFormat } from '@/libraries/supports'
 export default {
   props: {
     editval: {
@@ -32,11 +32,19 @@ export default {
       onEditFlag: false
     }
   },
+  computed: {
+    dispval() {
+      return numberFormat(this.editval, this.dispflag ? 3 : 0)
+    }
+  },
   methods: {
     keycheck(event) {
       var m = String.fromCharCode(event.keyCode)
       if ('0123456789.-\b\r'.indexOf(m, 0) < 0) {
         event.returnValue = false
+      }
+      if (m === '\r') {
+        this.offToggle()
       }
     },
     onToggle(e) {
@@ -78,8 +86,31 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-.inputter {
-  font-size: 14px;
+input[type="text"] {
   width: 100%;
+  box-sizing: border-box;
+}
+
+.myedit {
+  display: block;
+  .inputter {
+    display: block;
+    font-size: 14px;
+    text-align: right;
+    width: 100%;
+  }
+  .showdisp {
+    margin-top: 2px;
+    padding-top: 2px;
+    margin-bottom: 2px;
+    padding-bottom: 2px;
+    border: none;
+    display: block;
+    color: #000;
+    // background-color: #ffffff;
+    background-color: transparent;
+    text-align: right;
+    width: 100%;
+  }
 }
 </style>
